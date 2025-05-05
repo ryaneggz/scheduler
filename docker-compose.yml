@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   scheduler:
-    build: .
+    # build: .
+    image: ghcr.io/ryaneggz/scheduler:latest
     container_name: scheduler
     env_file:
       - .env

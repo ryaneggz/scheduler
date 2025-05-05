@@ -5,8 +5,14 @@
 **/sandbox
 **/scripts
 **/langgraph.json
-**.dockerignore
+**/.dockerignore
 **.cursorignore
 **/vscode
-**Dockerfile
+**/Dockerfile
 **/requirements-dev.txt
+**/docker-compose.yml
+.gitignore
+.vscode
+.dockerignore
+.git*
+**/.venv
