@@ -18,7 +18,10 @@ scheduler = AsyncIOScheduler(jobstores=jobstores)
 
 # Job definition
 def my_job():
-    print("Scheduled task executed.")
+    logger.info("Scheduled task executed.")
+    
+def my_job2():
+    logger.info("Scheduled 2 task executed.")
 
 # Add job (every 3 seconds)
 scheduler.add_job(
@@ -28,6 +31,12 @@ scheduler.add_job(
     replace_existing=True
 )
 
+scheduler.add_job(
+    my_job2,
+    IntervalTrigger(seconds=5),
+    id="my_job2_id",
+    replace_existing=True
+)
 # FastAPI app
 app = FastAPI()
 
