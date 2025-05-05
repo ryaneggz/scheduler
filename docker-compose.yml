@@ -1,14 +1,39 @@
-version: "3.9"
-
 services:
   scheduler:
     # build: .
     image: ghcr.io/ryaneggz/scheduler:latest
     container_name: scheduler
-    env_file:
-      - .env
+    environment:
+      DATABASE_URL: postgresql://admin:test1234@postgres:5432/scheduler_dev
     ports:
       - "8050:8050"
     volumes:
       - .:/app
     restart: unless-stopped 
+
+  ##############################################
+  ## Database (Postgres)
+  ##############################################
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: test1234
+      POSTGRES_MULTIPLE_DATABASES: "scheduler_dev,scheduler_prod,scheduler_test"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/postgres/data:/var/lib/postgresql/data
+      - ./docker/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: test1234
+    ports:
+      - "4040:80"
+    depends_on:
+      - postgres
