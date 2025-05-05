@@ -4,13 +4,11 @@ from apscheduler.triggers.cron import CronTrigger
 
 from src.models import ScheduledJob
 from src.scheduler import scheduler
-from src.routes import router
+from src.routes import router as scheduler_router
 from src.db import get_db
-
+from src.utils.module import load_function
 # FastAPI app
-app = FastAPI(title="Scheduler API", description="API for scheduling jobs")
-
-app.include_router(router)
+app = FastAPI(title="Scheduler API", description="API for scheduling jobs", docs_url="/")
 
 @app.on_event("startup")
 async def startup_event():
@@ -19,13 +17,7 @@ async def startup_event():
     for job_entry in jobs:
         trigger = CronTrigger.from_crontab(job_entry.trigger["expression"])
         
-        # Get the function from the path
-        func_path = job_entry.func
-        module_path, func_name = func_path.rsplit('.', 1)
-        
-        # Import the module dynamically
-        module = importlib.import_module(module_path)
-        func = getattr(module, func_name)
+        func = load_function(job_entry.func)
         
         scheduler.add_job(
             id=job_entry.job_id,
@@ -42,9 +34,8 @@ async def shutdown_event():
     scheduler.shutdown()
     print("Scheduler shut down.")
 
-@app.get("/")
-async def read_root():
-    return {"message": "Hello, World!"}
+# Routes
+app.include_router(scheduler_router)
 
 # Run the FastAPI app
 if __name__ == "__main__":
