@@ -1,0 +1,12 @@
+**/.env*
+**/logs
+**/tests
+**/seeds
+**/sandbox
+**/scripts
+**/langgraph.json
+**.dockerignore
+**.cursorignore
+**/vscode
+**Dockerfile
+**/requirements-dev.txt

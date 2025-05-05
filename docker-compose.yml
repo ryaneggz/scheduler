@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  scheduler:
+    build: .
+    container_name: scheduler
+    env_file:
+      - .env
+    ports:
+      - "8050:8050"
+    volumes:
+      - .:/app
+    restart: unless-stopped 
