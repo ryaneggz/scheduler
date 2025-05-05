@@ -1,23 +1,41 @@
+import importlib
 from fastapi import FastAPI
-from loguru import logger
-from src.scheduler import scheduler, JOBS_LIST
+from apscheduler.triggers.cron import CronTrigger
 
-for job in JOBS_LIST:
-    scheduler.add_job(
-        job["func"],
-        job["trigger"],
-        id=job["id"],
-        replace_existing=job["replace_existing"]
-    )
+from src.models import ScheduledJob
+from src.scheduler import scheduler
+from src.routes import router
+from src.db import get_db
 
 # FastAPI app
-app = FastAPI()
+app = FastAPI(title="Scheduler API", description="API for scheduling jobs")
+
+app.include_router(router)
 
 @app.on_event("startup")
 async def startup_event():
-    # Start the scheduler
+    db = next(get_db())
+    jobs = db.query(ScheduledJob).all()
+    for job_entry in jobs:
+        trigger = CronTrigger.from_crontab(job_entry.trigger["expression"])
+        
+        # Get the function from the path
+        func_path = job_entry.func
+        module_path, func_name = func_path.rsplit('.', 1)
+        
+        # Import the module dynamically
+        module = importlib.import_module(module_path)
+        func = getattr(module, func_name)
+        
+        scheduler.add_job(
+            id=job_entry.job_id,
+            func=func,
+            trigger=trigger,
+            args=job_entry.args,
+            kwargs=job_entry.kwargs,
+            replace_existing=True
+        )
     scheduler.start()
-    logger.info("Scheduler started.")
 
 @app.on_event("shutdown")
 async def shutdown_event():
